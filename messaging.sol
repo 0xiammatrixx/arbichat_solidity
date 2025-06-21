@@ -1,5 +1,3 @@
-For me personally I think the problem is from the smart contract...or flutter is calling the wrong thing...there's a miscommunication somewhere, make sure this contract is good and okay, you can try checking other repo's to see if you'll get any insight:
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.30;
 
