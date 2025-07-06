@@ -5,19 +5,19 @@ contract MessageStorage {
     struct Message {
         address sender;
         address receiver;
-        string cid;        
+        string cid;
         uint256 timestamp;
-        bool deleted; 
+        bool deleted;
     }
 
-    // Mapping from chat ID (hashed pair of addresses) to array of messages
     mapping(bytes32 => Message[]) private conversations;
 
     event MessageSent(
         address indexed sender,
         address indexed receiver,
         string cid,
-        uint256 timestamp
+        uint256 timestamp,
+        bool deleted // <-- include deleted flag for easier frontend sync
     );
 
     event MessageDeleted(
@@ -26,34 +26,37 @@ contract MessageStorage {
         uint256 index
     );
 
-    // Helper to get chat ID from two addresses (order independent)
     function _getChatId(address a, address b) internal pure returns (bytes32) {
         return a < b
             ? keccak256(abi.encodePacked(a, b))
             : keccak256(abi.encodePacked(b, a));
     }
 
-    // Send message by providing receiver and cid
     function sendMessage(address _receiver, string calldata _cid) external {
         require(_receiver != address(0), "Invalid receiver");
         require(bytes(_cid).length > 0, "CID required");
 
         bytes32 chatId = _getChatId(msg.sender, _receiver);
 
-        conversations[chatId].push(
-            Message({
-                sender: msg.sender,
-                receiver: _receiver,
-                cid: _cid,
-                timestamp: block.timestamp,
-                deleted: false
-            })
-        );
+        Message memory newMsg = Message({
+            sender: msg.sender,
+            receiver: _receiver,
+            cid: _cid,
+            timestamp: block.timestamp,
+            deleted: false
+        });
 
-        emit MessageSent(msg.sender, _receiver, _cid, block.timestamp);
+        conversations[chatId].push(newMsg);
+
+        emit MessageSent(
+            msg.sender,
+            _receiver,
+            _cid,
+            block.timestamp,
+            false // not deleted
+        );
     }
 
-    // Get all messages between msg.sender and another user
     function getMessages(address _otherUser) external view returns (Message[] memory) {
         bytes32 chatId = _getChatId(msg.sender, _otherUser);
         return conversations[chatId];
@@ -70,4 +73,3 @@ contract MessageStorage {
         emit MessageDeleted(msg.sender, _receiver, index);
     }
 }
-
