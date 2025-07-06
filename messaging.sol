@@ -57,11 +57,6 @@ contract MessageStorage {
         );
     }
 
-    function getMessages(address _otherUser) external view returns (Message[] memory) {
-        bytes32 chatId = _getChatId(msg.sender, _otherUser);
-        return conversations[chatId];
-    }
-
     function deleteMessage(address _receiver, uint256 index) external {
         bytes32 chatId = _getChatId(msg.sender, _receiver);
         require(index < conversations[chatId].length, "Invalid index");
